@@ -8,12 +8,12 @@ interface RegisterProps {
 
 const Register: React.FC<RegisterProps> = ({ onLogin }) => {
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     company: '',
     password: '',
-    confirmPassword: '',
-    plan: 'basic'
+    confirmPassword: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -35,10 +35,10 @@ const Register: React.FC<RegisterProps> = ({ onLogin }) => {
     setTimeout(() => {
       const userData = {
         id: 1,
-        name: formData.name,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         email: formData.email,
         company: formData.company,
-        plan: formData.plan,
         balance: 0,
         joinDate: new Date().toISOString()
       };
@@ -75,21 +75,41 @@ const Register: React.FC<RegisterProps> = ({ onLogin }) => {
               </div>
             )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Full Name
-              </label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                  placeholder="Enter your full name"
-                  required
-                />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  First Name
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    type="text"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    placeholder="Enter your first name"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Last Name
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    placeholder="Enter your last name"
+                    required
+                  />
+                </div>
               </div>
             </div>
 
@@ -126,23 +146,6 @@ const Register: React.FC<RegisterProps> = ({ onLogin }) => {
                   placeholder="Enter your company name"
                 />
               </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Plan
-              </label>
-              <select
-                name="plan"
-                value={formData.plan}
-                onChange={handleChange}
-                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-              >
-                <option value="basic">Basic - UGX 40/SMS</option>
-                <option value="standard">Standard - UGX 30/SMS</option>
-                <option value="pro">Pro - UGX 25/SMS</option>
-                <option value="exclusive">Exclusive - UGX 20/SMS</option>
-              </select>
             </div>
 
             <div>

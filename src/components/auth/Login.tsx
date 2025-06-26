@@ -145,18 +145,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             </p>
           </div>
 
-          <div className="mt-6 text-center">
-            <Link to="/pricing" className="text-blue-600 hover:text-blue-700 text-sm">
-              View Pricing Plans
-            </Link>
-          </div>
-        </div>
-
-        {/* Demo Credentials */}
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-sm text-blue-800 font-medium mb-2">Demo Credentials:</p>
-          <p className="text-sm text-blue-700">Email: demo@smsplatform.com</p>
-          <p className="text-sm text-blue-700">Password: demo123</p>
         </div>
       </div>
     </div>
