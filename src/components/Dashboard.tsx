@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useState, KeyboardEvent } from 'react';
 import { 
   Users, 
   MessageSquare, 
-  TrendingUp, 
   CreditCard,
   Send,
   Clock,
@@ -11,15 +10,59 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Activity,
-  Plus,
   Upload
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
+interface User {
+  name: string;
+  balance?: number;
+  remainingSms?: number;
+}
+
 interface DashboardProps {
-  user?: any;
+  user?: User;
   setActiveSection?: (section: string) => void;
 }
+
+const UserPlanInfo: React.FC<{user: User; setActiveSection?: (section: string) => void}> = ({ user, setActiveSection }) => {
+  const [showDetails, setShowDetails] = useState(false);
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setShowDetails(!showDetails);
+    }
+  };
+
+  return (
+    <div className="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+      <div 
+        className="cursor-pointer p-4 bg-blue-50 rounded-lg shadow-inner text-center"
+        onClick={() => setShowDetails(!showDetails)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={handleKeyDown}
+        aria-pressed={showDetails}
+      >
+        <h3 className="text-lg font-semibold text-blue-700">Current Account</h3>
+        <p className="text-2xl font-bold text-gray-900">{user.name}</p>
+      </div>
+      {showDetails && (
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="flex flex-col justify-center items-center p-4 bg-green-50 rounded-lg shadow-inner">
+            <h3 className="text-lg font-semibold text-green-700 mb-2">Balance</h3>
+            <p className="text-2xl font-bold text-gray-900">UGX {user.balance?.toLocaleString() || '0'}</p>
+          </div>
+          <div className="flex flex-col justify-center items-center p-4 bg-purple-50 rounded-lg shadow-inner">
+            <h3 className="text-lg font-semibold text-purple-700 mb-2">Remaining SMS</h3>
+            <p className="text-2xl font-bold text-gray-900">{user.remainingSms?.toLocaleString() || '0'}</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const Dashboard: React.FC<DashboardProps> = ({ user, setActiveSection }) => {
   const stats = [
@@ -27,7 +70,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setActiveSection }) => {
       title: 'Total Contacts',
       value: '12,847',
       change: '+12%',
-      changeType: 'increase',
+      changeType: 'increase' as const,
       icon: Users,
       color: 'blue',
       trend: [1200, 1400, 1300, 1600, 1800, 1700, 1900]
@@ -36,7 +79,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setActiveSection }) => {
       title: 'Messages Sent',
       value: '8,429',
       change: '+18%',
-      changeType: 'increase',
+      changeType: 'increase' as const,
       icon: Send,
       color: 'green',
       trend: [800, 900, 850, 1100, 1200, 1150, 1300]
@@ -45,7 +88,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setActiveSection }) => {
       title: 'Delivery Rate',
       value: '97.8%',
       change: '+2.1%',
-      changeType: 'increase',
+      changeType: 'increase' as const,
       icon: CheckCircle,
       color: 'emerald',
       trend: [95, 96, 95.5, 97, 97.5, 97.2, 97.8]
@@ -54,7 +97,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setActiveSection }) => {
       title: 'Account Balance',
       value: user ? `UGX ${user.balance?.toLocaleString() || '0'}` : 'UGX 1.83M',
       change: '-5%',
-      changeType: 'decrease',
+      changeType: 'decrease' as const,
       icon: CreditCard,
       color: 'purple',
       trend: [2.1, 2.0, 1.95, 1.92, 1.87, 1.84, 1.83]
@@ -69,7 +112,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setActiveSection }) => {
       message: 'Your appointment is confirmed for tomorrow at 2:00 PM',
       status: 'delivered',
       timestamp: '2 minutes ago',
-      gateway: 'Africa\'s Talking',
+      gateway: "Africa's Talking",
       priority: 'high'
     },
     {
@@ -99,7 +142,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setActiveSection }) => {
       message: 'Your order has been shipped and will arrive soon',
       status: 'failed',
       timestamp: '18 minutes ago',
-      gateway: 'Africa\'s Talking',
+      gateway: "Africa's Talking",
       priority: 'high'
     }
   ];
@@ -133,20 +176,19 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setActiveSection }) => {
   };
 
   const handleQuickAction = (action: string) => {
-    if (setActiveSection) {
-      switch (action) {
-        case 'upload-contacts':
-          setActiveSection('contacts');
-          break;
-        case 'create-campaign':
-          setActiveSection('campaigns');
-          break;
-        case 'view-reports':
-          setActiveSection('reports');
-          break;
-        default:
-          break;
-      }
+    if (!setActiveSection) return;
+    switch (action) {
+      case 'upload-contacts':
+        setActiveSection('contacts');
+        break;
+      case 'create-campaign':
+        setActiveSection('campaigns');
+        break;
+      case 'view-reports':
+        setActiveSection('reports');
+        break;
+      default:
+        break;
     }
   };
 
@@ -179,23 +221,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setActiveSection }) => {
       </div>
 
       {/* User Plan Info */}
-      {user && (
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold text-gray-900">Current Plan: {user.plan}</h3>
-              <p className="text-sm text-gray-600">Account Balance: UGX {user.balance?.toLocaleString() || '0'}</p>
-            </div>
-            <button 
-              onClick={() => setActiveSection && setActiveSection('balance')}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Top Up</span>
-            </button>
-          </div>
-        </div>
-      )}
+      {user && <UserPlanInfo user={user} setActiveSection={setActiveSection} />}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">

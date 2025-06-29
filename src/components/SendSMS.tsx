@@ -170,17 +170,26 @@ const SendSMS: React.FC<SendSMSProps> = ({ setActiveSection }) => {
                       Recipients ({recipients.length})
                     </div>
                     <div className="max-h-32 overflow-y-auto space-y-1">
-                      {recipients.map((phone, index) => (
-                        <div key={index} className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded-lg">
-                          <span className="text-sm text-gray-700">{phone}</span>
-                          <button
-                            onClick={() => removeRecipient(phone)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))}
+                    {recipients.map((phone, index) => (
+                      <div key={index} className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded-lg space-x-2">
+                        <input
+                          type="tel"
+                          value={phone}
+                          onChange={(e) => {
+                            const newRecipients = [...recipients];
+                            newRecipients[index] = e.target.value;
+                            setRecipients(newRecipients);
+                          }}
+                          className="flex-1 text-sm text-gray-700 bg-transparent border border-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <button
+                          onClick={() => removeRecipient(phone)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
                     </div>
                   </div>
                 )}

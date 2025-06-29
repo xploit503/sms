@@ -6,6 +6,15 @@ interface LoginProps {
   onLogin: (userData: any) => void;
 }
 
+const GoogleIcon: React.FC = () => (
+  <svg className="w-5 h-5 mr-2" viewBox="0 0 533.5 544.3" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+    <path fill="#4285F4" d="M533.5 278.4c0-18.5-1.5-36.3-4.3-53.6H272v101.4h146.9c-6.3 34-25.4 62.8-54.3 82v68h87.7c51.3-47.3 80.2-116.7 80.2-197.8z"/>
+    <path fill="#34A853" d="M272 544.3c73.7 0 135.6-24.4 180.8-66.1l-87.7-68c-24.4 16.3-55.7 26-93.1 26-71.5 0-132-48.3-153.6-113.1H29.6v70.9C74.6 485.7 167.6 544.3 272 544.3z"/>
+    <path fill="#FBBC05" d="M118.4 321.1c-5.4-16.3-8.5-33.7-8.5-51.6s3.1-35.3 8.5-51.6v-70.9H29.6c-18.9 37.7-29.6 80-29.6 122.5s10.7 84.8 29.6 122.5l88.8-70.9z"/>
+    <path fill="#EA4335" d="M272 107.7c39.9 0 75.7 13.7 103.9 40.7l77.9-77.9C405.7 24.4 343.8 0 272 0 167.6 0 74.6 58.6 29.6 146.2l88.8 70.9c21.6-64.8 82.1-113.1 153.6-113.1z"/>
+  </svg>
+);
+
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [formData, setFormData] = useState({
     email: '',
@@ -44,6 +53,11 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       ...formData,
       [e.target.name]: e.target.value
     });
+  };
+
+  const handleGoogleSignIn = () => {
+    // Placeholder for Google sign-in logic
+    alert('Google sign-in clicked');
   };
 
   return (
@@ -135,6 +149,18 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               )}
             </button>
           </form>
+
+          {/* Google Sign-In Button */}
+          <div className="mt-6">
+            <button
+              onClick={handleGoogleSignIn}
+              className="w-full flex items-center justify-center space-x-2 border border-gray-300 rounded-lg py-3 hover:bg-gray-100 transition-colors"
+              aria-label="Sign in with Google"
+            >
+              <GoogleIcon />
+              <span className="text-gray-700 font-medium">Continue with Google</span>
+            </button>
+          </div>
 
           <div className="mt-6 text-center">
             <p className="text-gray-600">
