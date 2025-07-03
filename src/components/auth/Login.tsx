@@ -58,8 +58,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f6f8fa]">
-      <div className="w-full max-w-5xl h-[600px] bg-white rounded-xl shadow-lg flex flex-col md:flex-row overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-[#f6f8fa] overflow-y-auto">
+      <div className="w-[92vw] max-w-full md:max-w-5xl h-auto md:h-[600px] bg-white rounded-lg shadow-lg border border-gray-200 flex flex-col md:flex-row overflow-hidden my-6 md:my-0 mx-auto">
         {/* Left Panel */}
         <div className="w-full md:w-1/2 bg-[#2563eb] flex flex-col justify-center items-center p-6 md:p-10 text-white">
           <div className="flex items-center mb-8">

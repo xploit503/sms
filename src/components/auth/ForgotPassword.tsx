@@ -21,8 +21,8 @@ const ForgotPassword: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f6f8fa]">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-6 md:p-10 flex flex-col items-center">
+    <div className="min-h-screen flex items-center justify-center bg-[#f6f8fa] overflow-y-auto">
+      <div className="w-full max-w-xs md:max-w-md bg-white rounded-xl shadow-lg p-6 md:p-10 flex flex-col items-center my-6 md:my-0">
         <div className="flex items-center mb-6">
           <MessageSquare className="w-8 h-8 mr-2 text-blue-600" />
           <span className="text-2xl font-bold text-blue-700">SMS-System</span>
