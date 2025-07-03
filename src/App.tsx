@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
-import LeadManagement from './components/LeadManagement';
 import CampaignScheduler from './components/CampaignScheduler';
 import MessageHistory from './components/MessageHistory';
 import APISection from './components/APISection';
@@ -14,6 +13,7 @@ import Pricing from './components/Pricing';
 import Templates from './components/Templates';
 import Contacts from './components/Contacts';
 import SendSMS from './components/SendSMS';
+import ForgotPassword from './components/auth/ForgotPassword';
 
 function App() {
   const [activeSection, setActiveSection] = useState('dashboard');
@@ -49,8 +49,6 @@ function App() {
         return <Dashboard user={user} setActiveSection={setActiveSection} />;
       case 'send-sms':
         return <SendSMS />;
-      case 'leads':
-        return <LeadManagement />;
       case 'contacts':
         return <Contacts />;
       case 'campaigns':
@@ -78,6 +76,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login onLogin={handleLogin} />} />
           <Route path="/register" element={<Register onLogin={handleLogin} />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="*" element={<Navigate to="/login" />} />
         </Routes>

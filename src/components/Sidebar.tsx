@@ -39,7 +39,6 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'send-sms', label: 'Send SMS', icon: Send },
     { id: 'contacts', label: 'Contacts', icon: UserCheck },
-    { id: 'leads', label: 'Manage Leads', icon: Users },
     { id: 'campaigns', label: 'Campaigns', icon: Calendar },
     { id: 'templates', label: 'Templates', icon: FileText },
     { id: 'messages', label: 'Message History', icon: MessageSquare },

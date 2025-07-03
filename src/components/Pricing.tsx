@@ -233,8 +233,11 @@ const Pricing: React.FC<PricingProps> = ({ user }) => {
                 </div>
 
                 {/* CTA Button */}
-                <button className={`w-full bg-gradient-to-r ${plan.color} text-white py-3 rounded-lg hover:opacity-90 transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg`}>
-                  <span>Start Free</span>
+                <button
+                  className={`w-full bg-gradient-to-r ${plan.color} text-white py-3 rounded-lg hover:opacity-90 transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg`}
+                  onClick={() => alert('Proceed to payment for ' + plan.name)}
+                >
+                  <span>Proceed to Payment</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>

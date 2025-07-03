@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MessageSquare, Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
+import { MessageSquare, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
 interface LoginProps {
   onLogin: (userData: any) => void;
@@ -28,8 +28,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-
-    // Simulate API call
     setTimeout(() => {
       if (formData.email && formData.password) {
         const userData = {
@@ -56,121 +54,107 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   };
 
   const handleGoogleSignIn = () => {
-    // Placeholder for Google sign-in logic
     alert('Google sign-in clicked');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl shadow-lg mb-4">
-            <MessageSquare className="w-8 h-8 text-white" />
+    <div className="min-h-screen flex items-center justify-center bg-[#f6f8fa]">
+      <div className="w-full max-w-5xl h-[600px] bg-white rounded-xl shadow-lg flex flex-col md:flex-row overflow-hidden">
+        {/* Left Panel */}
+        <div className="w-full md:w-1/2 bg-[#2563eb] flex flex-col justify-center items-center p-6 md:p-10 text-white">
+          <div className="flex items-center mb-8">
+            <MessageSquare className="w-8 h-8 mr-2 text-white" />
+            <span className="text-2xl font-bold">SMS-System</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">SMS Platform</h1>
-          <p className="text-gray-600 mt-2">Sign in to your account</p>
+          <h2 className="text-lg md:text-xl font-semibold mb-2">Don't Have an Account Yet?</h2>
+          <p className="mb-6 text-white/80 text-center max-w-xs text-sm md:text-base">Let's get you all set up so you can start creating your first onboarding experience.</p>
+          <Link to="/register">
+            <button className="px-6 md:px-8 py-2 bg-white text-[#2563eb] font-semibold rounded border border-white hover:bg-blue-50 hover:text-[#2563eb] transition text-sm md:text-base">SIGN UP</button>
+          </Link>
         </div>
-
-        {/* Login Form */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Right Panel */}
+        <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-6 md:p-10">
+          <div className="w-full max-w-sm">
+            <h2 className="text-xl md:text-2xl font-bold text-[#22223b] mb-2">Log in to Your Account</h2>
+            <p className="mb-6 text-gray-500 text-xs md:text-sm">Log in to your account so you can continue building and editing your onboarding flows.</p>
+            <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
-                {error}
-              </div>
+                <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-2 rounded text-sm">{error}</div>
             )}
-
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
-              </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                  placeholder="Enter your email"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-colors"
+                    placeholder="Enter your email address"
                   required
                 />
               </div>
             </div>
-
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-colors"
                   placeholder="Enter your password"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
             </div>
-
             <div className="flex items-center justify-between">
-              <label className="flex items-center">
+                <label className="flex items-center text-sm">
                 <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                <span className="ml-2 text-sm text-gray-600">Remember me</span>
+                  <span className="ml-2 text-gray-600">Remember Me</span>
               </label>
-              <a href="#" className="text-sm text-blue-600 hover:text-blue-700">
-                Forgot password?
-              </a>
+                <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline">Forgot password?</Link>
             </div>
-
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg disabled:opacity-50"
+                className="w-full bg-[#2563eb] text-white py-2 rounded font-semibold hover:bg-blue-700 transition disabled:opacity-50"
             >
               {isLoading ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto"></div>
               ) : (
-                <>
-                  <span>Sign In</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
+                  'LOG IN'
               )}
             </button>
           </form>
-
-          {/* Google Sign-In Button */}
-          <div className="mt-6">
+            <div className="my-4 flex items-center">
+              <div className="flex-grow border-t border-gray-200"></div>
+              <span className="mx-2 text-gray-400 text-xs">Or log in using</span>
+              <div className="flex-grow border-t border-gray-200"></div>
+            </div>
             <button
               onClick={handleGoogleSignIn}
-              className="w-full flex items-center justify-center space-x-2 border border-gray-300 rounded-lg py-3 hover:bg-gray-100 transition-colors"
+              className="w-full flex items-center justify-center border border-gray-300 rounded py-2 hover:bg-gray-50 transition-colors mb-2"
               aria-label="Sign in with Google"
             >
               <GoogleIcon />
-              <span className="text-gray-700 font-medium">Continue with Google</span>
+              <span className="text-gray-700 font-medium">Google</span>
             </button>
+            <div className="mt-4 text-center">
+              <span className="text-sm text-gray-500">Don't have an account? </span>
+              <Link to="/register" className="text-blue-600 hover:underline font-medium">Sign up</Link>
           </div>
-
-          <div className="mt-6 text-center">
-            <p className="text-gray-600">
-              Don't have an account?{' '}
-              <Link to="/register" className="text-blue-600 hover:text-blue-700 font-medium">
-                Sign up
-              </Link>
-            </p>
           </div>
-
         </div>
       </div>
     </div>
