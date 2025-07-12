@@ -2,87 +2,106 @@ import React, { useState } from 'react';
 import { MessageSquare } from 'lucide-react';
 import Login from './Login';
 import Register from './Register';
+import ForgotPassword from './ForgotPassword';
 
 interface AuthContainerProps {
   onLogin: (userData: any) => void;
 }
 
 const AuthContainer: React.FC<AuthContainerProps> = ({ onLogin }) => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [currentView, setCurrentView] = useState<'login' | 'register' | 'forgot'>('login');
   const [isAnimating, setIsAnimating] = useState(false);
 
-  const switchMode = () => {
+  const switchView = (view: 'login' | 'register' | 'forgot') => {
+    if (view === currentView) return;
+    
     setIsAnimating(true);
     setTimeout(() => {
-      setIsLogin(!isLogin);
+      setCurrentView(view);
       setIsAnimating(false);
     }, 300);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 overflow-hidden">
-      <div className="w-[92vw] max-w-full md:max-w-6xl h-auto md:h-[650px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col md:flex-row overflow-hidden my-6 md:my-0 mx-auto relative">
-        
-        {/* Animated Background Panel */}
-        <div className={`absolute inset-0 w-full md:w-1/2 bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 transition-transform duration-500 ease-in-out z-10 ${
-          isLogin ? 'translate-x-0 md:translate-x-full' : 'translate-x-0'
-        }`}>
-          <div className="h-full flex flex-col justify-center items-center p-6 md:p-10 text-white relative">
-            <div className="absolute inset-0 bg-black/10"></div>
-            <div className="relative z-10 text-center">
-              <div className="flex items-center justify-center mb-8">
-                <MessageSquare className="w-10 h-10 mr-3 text-white" />
-                <span className="text-3xl font-bold">SMS-System</span>
-              </div>
-              
-              <div className={`transition-opacity duration-300 ${isAnimating ? 'opacity-0' : 'opacity-100'}`}>
-                {isLogin ? (
-                  <>
-                    <h2 className="text-xl md:text-2xl font-semibold mb-4">New to SMS-System?</h2>
-                    <p className="mb-8 text-white/90 text-center max-w-sm text-sm md:text-base leading-relaxed">
-                      Join thousands of businesses using our platform to reach their customers effectively through SMS marketing.
-                    </p>
-                    <button 
-                      onClick={switchMode}
-                      className="px-8 py-3 bg-white/20 backdrop-blur-sm text-white font-semibold rounded-xl border border-white/30 hover:bg-white/30 transition-all duration-200 transform hover:scale-105"
-                    >
-                      Create Account
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <h2 className="text-xl md:text-2xl font-semibold mb-4">Already have an account?</h2>
-                    <p className="mb-8 text-white/90 text-center max-w-sm text-sm md:text-base leading-relaxed">
-                      Welcome back! Sign in to continue managing your SMS campaigns and growing your business.
-                    </p>
-                    <button 
-                      onClick={switchMode}
-                      className="px-8 py-3 bg-white/20 backdrop-blur-sm text-white font-semibold rounded-xl border border-white/30 hover:bg-white/30 transition-all duration-200 transform hover:scale-105"
-                    >
-                      Sign In
-                    </button>
-                  </>
-                )}
-              </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200 p-4">
+      <div className="w-full max-w-md">
+        {/* Single Card Container */}
+        <div className="bg-white rounded-2xl shadow-2xl border border-blue-200 overflow-hidden">
+          
+          {/* Header */}
+          <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-center">
+            <div className="flex items-center justify-center mb-4">
+              <MessageSquare className="w-8 h-8 mr-3 text-white" />
+              <span className="text-2xl font-bold text-white">SMS-System</span>
+            </div>
+            <p className="text-blue-100 text-sm">
+              {currentView === 'login' && 'Welcome back! Sign in to continue'}
+              {currentView === 'register' && 'Join thousands of businesses today'}
+              {currentView === 'forgot' && 'Reset your password securely'}
+            </p>
+          </div>
+
+          {/* Form Container */}
+          <div className="p-6 sm:p-8">
+            <div className={`transition-opacity duration-300 ${isAnimating ? 'opacity-0' : 'opacity-100'}`}>
+              {currentView === 'login' && (
+                <Login 
+                  onLogin={onLogin} 
+                  onSwitchToRegister={() => switchView('register')}
+                  onSwitchToForgot={() => switchView('forgot')}
+                />
+              )}
+              {currentView === 'register' && (
+                <Register 
+                  onLogin={onLogin} 
+                  onSwitchToLogin={() => switchView('login')}
+                />
+              )}
+              {currentView === 'forgot' && (
+                <ForgotPassword 
+                  onSwitchToLogin={() => switchView('login')}
+                />
+              )}
             </div>
           </div>
-        </div>
 
-        {/* Login Form */}
-        <div className={`w-full md:w-1/2 flex flex-col justify-center items-center p-6 md:p-10 transition-transform duration-500 ease-in-out ${
-          isLogin ? 'translate-x-0 md:translate-x-0' : 'translate-x-0 md:-translate-x-full'
-        } ${isLogin ? 'z-20' : 'z-0'}`}>
-          <div className={`w-full max-w-sm transition-opacity duration-300 ${isAnimating ? 'opacity-0' : 'opacity-100'}`}>
-            <Login onLogin={onLogin} />
-          </div>
-        </div>
-
-        {/* Register Form */}
-        <div className={`w-full md:w-1/2 flex flex-col justify-center items-center p-6 md:p-10 transition-transform duration-500 ease-in-out ${
-          isLogin ? 'translate-x-0 md:translate-x-full' : 'translate-x-0 md:translate-x-0'
-        } ${!isLogin ? 'z-20' : 'z-0'}`}>
-          <div className={`w-full max-w-sm transition-opacity duration-300 ${isAnimating ? 'opacity-0' : 'opacity-100'}`}>
-            <Register onLogin={onLogin} />
+          {/* Footer Navigation */}
+          <div className="bg-blue-50 px-6 py-4 border-t border-blue-100">
+            <div className="text-center text-sm">
+              {currentView === 'login' && (
+                <p className="text-blue-600">
+                  Don't have an account?{' '}
+                  <button 
+                    onClick={() => switchView('register')}
+                    className="font-semibold text-blue-700 hover:text-blue-800 transition-colors"
+                  >
+                    Sign up
+                  </button>
+                </p>
+              )}
+              {currentView === 'register' && (
+                <p className="text-blue-600">
+                  Already have an account?{' '}
+                  <button 
+                    onClick={() => switchView('login')}
+                    className="font-semibold text-blue-700 hover:text-blue-800 transition-colors"
+                  >
+                    Sign in
+                  </button>
+                </p>
+              )}
+              {currentView === 'forgot' && (
+                <p className="text-blue-600">
+                  Remember your password?{' '}
+                  <button 
+                    onClick={() => switchView('login')}
+                    className="font-semibold text-blue-700 hover:text-blue-800 transition-colors"
+                  >
+                    Sign in
+                  </button>
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </div>

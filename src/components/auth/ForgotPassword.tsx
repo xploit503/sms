@@ -1,72 +1,136 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Mail, MessageSquare } from 'lucide-react';
+import { Mail, ArrowLeft, CheckCircle, Loader } from 'lucide-react';
 
-const ForgotPassword: React.FC = () => {
+interface ForgotPasswordProps {
+  onSwitchToLogin: () => void;
+}
+
+const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onSwitchToLogin }) => {
   const [email, setEmail] = useState('');
-  const [submitted, setSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    
     if (!email) {
       setError('Please enter your email address');
       return;
     }
-    // Simulate API call
-    setTimeout(() => {
-      setSubmitted(true);
-    }, 1000);
+
+    setIsLoading(true);
+    
+    // Simulate API call for password reset
+    try {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setIsSubmitted(true);
+    } catch (error) {
+      setError('Failed to send reset email. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f6f8fa] overflow-y-auto">
-      <div className="w-full max-w-xs md:max-w-md bg-white rounded-xl shadow-lg p-6 md:p-10 flex flex-col items-center my-6 md:my-0">
-        <div className="flex items-center mb-6">
-          <MessageSquare className="w-8 h-8 mr-2 text-blue-600" />
-          <span className="text-2xl font-bold text-blue-700">SMS-System</span>
+  if (isSubmitted) {
+    return (
+      <div className="text-center">
+        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <CheckCircle className="w-8 h-8 text-blue-600" />
         </div>
-        <h2 className="text-xl md:text-2xl font-bold text-[#22223b] mb-2">Forgot Password</h2>
-        <p className="mb-6 text-gray-500 text-sm text-center">Enter your email address and we'll send you a link to reset your password.</p>
-        {submitted ? (
-          <div className="bg-green-100 border border-green-300 text-green-700 px-4 py-2 rounded text-sm text-center mb-4">
-            If an account with that email exists, a password reset link has been sent.
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="w-full space-y-4">
-            {error && (
-              <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-2 rounded text-sm">{error}</div>
-            )}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="email"
-                  name="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-2 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-colors"
-                  placeholder="Enter your email address"
-                  required
-                />
-              </div>
-            </div>
-            <button
-              type="submit"
-              className="w-full bg-[#2563eb] text-white py-2 rounded font-semibold hover:bg-blue-700 transition"
-            >
-              Send Reset Link
-            </button>
-          </form>
-        )}
-        <div className="mt-6 text-center w-full">
-          <Link to="/login" className="text-blue-600 hover:underline font-medium text-sm">Back to Login</Link>
+        
+        <h2 className="text-2xl font-bold text-blue-900 mb-4">Check Your Email</h2>
+        
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <p className="text-blue-800 text-sm leading-relaxed">
+            We've sent a password reset link to{' '}
+            <span className="font-semibold">{email}</span>
+          </p>
         </div>
+        
+        <div className="space-y-4 text-sm text-blue-600">
+          <p>Didn't receive the email? Check your spam folder or try again.</p>
+          <p>The reset link will expire in 24 hours for security.</p>
+        </div>
+        
+        <button
+          onClick={onSwitchToLogin}
+          className="w-full mt-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Sign In</span>
+        </button>
       </div>
-    </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-bold text-blue-900 mb-2">Reset Password</h2>
+        <p className="text-blue-600 text-sm">
+          Enter your email address and we'll send you a secure link to reset your password.
+        </p>
+      </div>
+      
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {error && (
+          <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
+        
+        <div>
+          <label className="block text-sm font-medium text-blue-900 mb-2">Email Address</label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-400 w-5 h-5" />
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-blue-50/30"
+              placeholder="Enter your email address"
+              required
+            />
+          </div>
+        </div>
+        
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-start space-x-3">
+            <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <div className="w-2 h-2 bg-white rounded-full"></div>
+            </div>
+            <div className="text-sm text-blue-800">
+              <p className="font-medium mb-1">Security Notice</p>
+              <p>For your security, the reset link will expire in 24 hours and can only be used once.</p>
+            </div>
+          </div>
+        </div>
+        
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg"
+        >
+          {isLoading ? (
+            <Loader className="w-5 h-5 animate-spin" />
+          ) : (
+            'Send Reset Link'
+          )}
+        </button>
+        
+        <button
+          type="button"
+          onClick={onSwitchToLogin}
+          className="w-full text-blue-600 hover:text-blue-800 font-medium transition-colors flex items-center justify-center space-x-2"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Sign In</span>
+        </button>
+      </form>
+    </>
   );
 };
 
-export default ForgotPassword; 
+export default ForgotPassword;
