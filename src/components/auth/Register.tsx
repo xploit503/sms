@@ -201,8 +201,6 @@ const Register: React.FC<RegisterProps> = ({ onLogin }) => {
         </button>
       </form>
     </>
-      </div>
-    </div>
   );
 };
 

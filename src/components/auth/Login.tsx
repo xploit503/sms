@@ -112,8 +112,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         </button>
       </form>
     </>
-      </div>
-    </div>
   );
 };
 
