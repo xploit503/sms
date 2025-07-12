@@ -65,9 +65,6 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister, onSwitchToFo
           </div>
         )}
         
-        {/* Google Sign In Button */}
-        <GoogleSignInButton onClick={handleGoogleSignIn} />
-        
         {/* Divider */}
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
@@ -133,6 +130,9 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister, onSwitchToFo
             Forgot password?
           </button>
         </div>
+        
+        {/* Google Sign In Button */}
+        <GoogleSignInButton onClick={handleGoogleSignIn} />
         
         <button
           type="submit"
