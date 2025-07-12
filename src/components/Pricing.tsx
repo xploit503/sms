@@ -1,100 +1,118 @@
 import React, { useState } from 'react';
-import { Check, Star, ArrowRight, MessageSquare, Users, BarChart3, Shield } from 'lucide-react';
+import { Check, Star, ArrowRight, MessageSquare, Users, BarChart3, Shield, CreditCard, Loader } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { supabase, PricingPlan } from '../lib/supabase';
+import { AuthUser, authService } from '../lib/auth';
 
 interface PricingProps {
-  user?: any;
+  user?: AuthUser;
 }
 
 const Pricing: React.FC<PricingProps> = ({ user }) => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [plans, setPlans] = useState<PricingPlan[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [processingPlan, setProcessingPlan] = useState<string | null>(null);
 
-  const plans = [
-    {
-      id: 'basic',
-      name: 'BASIC',
-      price: 40,
-      originalPrice: 50,
-      color: 'from-gray-500 to-gray-600',
-      borderColor: 'border-gray-200',
-      popular: false,
-      features: [
-        'Free SMS Account',
-        'UGX 100 for Testing',
-        'Negotiable',
-        'Reseller Account'
-      ],
-      limits: {
-        sms: '1,000 SMS/month',
-        contacts: '500 contacts',
-        templates: '5 templates',
-        support: 'Email support'
-      }
-    },
-    {
-      id: 'standard',
-      name: 'STANDARD',
-      price: 30,
-      originalPrice: 40,
-      color: 'from-blue-500 to-blue-600',
-      borderColor: 'border-blue-200',
-      popular: false,
-      features: [
-        'Free SMS Account',
-        'UGX 100 for Testing',
-        'Negotiable',
-        'Reseller Account'
-      ],
-      limits: {
-        sms: '5,000 SMS/month',
-        contacts: '2,500 contacts',
-        templates: '15 templates',
-        support: 'Priority email support'
-      }
-    },
-    {
-      id: 'pro',
-      name: 'PRO',
-      price: 25,
-      originalPrice: 35,
-      color: 'from-orange-500 to-red-500',
-      borderColor: 'border-orange-200',
-      popular: true,
-      features: [
-        'Free SMS Account',
-        'UGX 100 for Testing',
-        'Negotiable',
-        'Reseller Account'
-      ],
-      limits: {
-        sms: '15,000 SMS/month',
-        contacts: '10,000 contacts',
-        templates: 'Unlimited templates',
-        support: 'Phone & email support'
-      }
-    },
-    {
-      id: 'exclusive',
-      name: 'EXCLUSIVE',
-      price: 20,
-      originalPrice: 30,
-      color: 'from-purple-500 to-indigo-600',
-      borderColor: 'border-purple-200',
-      popular: false,
-      features: [
-        'Free SMS Account',
-        'UGX 100 for Testing',
-        'Negotiable',
-        'Reseller Account'
-      ],
-      limits: {
-        sms: 'Unlimited SMS',
-        contacts: 'Unlimited contacts',
-        templates: 'Unlimited templates',
-        support: '24/7 dedicated support'
-      }
+  React.useEffect(() => {
+    fetchPlans();
+  }, []);
+
+  const fetchPlans = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('pricing_plans')
+        .select('*')
+        .eq('is_active', true)
+        .order('price', { ascending: false });
+
+      if (error) throw error;
+      setPlans(data || []);
+    } catch (error) {
+      console.error('Error fetching plans:', error);
     }
-  ];
+  };
+
+  const handleProceedToPayment = async (plan: PricingPlan) => {
+    if (!user) {
+      alert('Please sign in to subscribe to a plan');
+      return;
+    }
+
+    setProcessingPlan(plan.id);
+    setLoading(true);
+
+    try {
+      // Simulate payment processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Update user subscription
+      const { error: subscriptionError } = await supabase
+        .from('user_subscriptions')
+        .upsert({
+          user_id: user.id,
+          plan_id: plan.id,
+          status: 'active',
+          started_at: new Date().toISOString(),
+          expires_at: billingCycle === 'yearly' ? 
+            new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() :
+            new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        });
+
+      if (subscriptionError) throw subscriptionError;
+
+      // Add bonus credits for new subscription
+      const bonusAmount = plan.price * 1000; // Convert to UGX
+      await authService.updateBalance(
+        user.id, 
+        bonusAmount, 
+        `Subscription bonus for ${plan.name} plan`
+      );
+
+      // Create payment transaction
+      await supabase
+        .from('transactions')
+        .insert({
+          user_id: user.id,
+          type: 'payment',
+          amount: plan.price * (billingCycle === 'yearly' ? 12 : 1),
+          balance_after: user.profile.balance + bonusAmount,
+          description: `${plan.name} plan subscription (${billingCycle})`,
+          reference: `PAY_${Date.now()}`,
+          status: 'completed',
+        });
+
+      alert(`Successfully subscribed to ${plan.name} plan! Bonus credits have been added to your account.`);
+      
+    } catch (error) {
+      console.error('Payment error:', error);
+      alert('Payment failed. Please try again.');
+    } finally {
+      setLoading(false);
+      setProcessingPlan(null);
+    }
+  };
+
+  const getPlanColor = (planName: string) => {
+    const colors = {
+      'BASIC': { gradient: 'from-gray-500 to-gray-600', border: 'border-gray-200' },
+      'STANDARD': { gradient: 'from-blue-500 to-blue-600', border: 'border-blue-200' },
+      'PRO': { gradient: 'from-orange-500 to-red-500', border: 'border-orange-200' },
+      'EXCLUSIVE': { gradient: 'from-purple-500 to-indigo-600', border: 'border-purple-200' }
+    };
+    return colors[planName as keyof typeof colors] || colors.BASIC;
+  };
+
+  const getPlanLimits = (plan: PricingPlan) => {
+    return {
+      sms: plan.sms_limit === -1 ? 'Unlimited SMS' : `${plan.sms_limit.toLocaleString()} SMS/month`,
+      contacts: plan.contacts_limit === -1 ? 'Unlimited contacts' : `${plan.contacts_limit.toLocaleString()} contacts`,
+      templates: plan.templates_limit === -1 ? 'Unlimited templates' : `${plan.templates_limit} templates`,
+      support: plan.support_level === '24/7' ? '24/7 dedicated support' : 
+               plan.support_level === 'phone' ? 'Phone & email support' : 
+               'Email support'
+    };
+  };
 
   const features = [
     {
@@ -189,11 +207,11 @@ const Pricing: React.FC<PricingProps> = ({ user }) => {
           {plans.map((plan) => (
             <div
               key={plan.id}
-              className={`relative bg-white rounded-2xl shadow-lg border-2 ${plan.borderColor} hover:shadow-xl transition-all duration-300 ${
-                plan.popular ? 'scale-105 ring-2 ring-orange-500 ring-opacity-50' : ''
+              className={`relative bg-white rounded-2xl shadow-lg border-2 ${getPlanColor(plan.name).border} hover:shadow-xl transition-all duration-300 ${
+                plan.name === 'PRO' ? 'scale-105 ring-2 ring-orange-500 ring-opacity-50' : ''
               }`}
             >
-              {plan.popular && (
+              {plan.name === 'PRO' && (
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                   <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-1 rounded-full text-sm font-medium flex items-center space-x-1">
                     <Star className="w-4 h-4" />
@@ -208,7 +226,9 @@ const Pricing: React.FC<PricingProps> = ({ user }) => {
                   <h3 className="text-sm font-medium text-gray-500 mb-2">{plan.name}</h3>
                   <div className="flex items-center justify-center space-x-2 mb-2">
                     <span className="text-3xl font-bold text-gray-900">UGX{plan.price}</span>
-                    <span className="text-lg text-gray-500 line-through">UGX{plan.originalPrice}</span>
+                    {plan.original_price && (
+                      <span className="text-lg text-gray-500 line-through">UGX{plan.original_price}</span>
+                    )}
                   </div>
                   <p className="text-sm text-gray-600">Per SMS/Month</p>
                 </div>
@@ -224,21 +244,37 @@ const Pricing: React.FC<PricingProps> = ({ user }) => {
                 </div>
 
                 {/* Limits */}
+                {(() => {
+                  const limits = getPlanLimits(plan);
+                  return (
                 <div className="space-y-2 mb-6 p-4 bg-gray-50 rounded-lg">
                   <div className="text-xs text-gray-500 font-medium">PLAN LIMITS:</div>
-                  <div className="text-xs text-gray-600">{plan.limits.sms}</div>
-                  <div className="text-xs text-gray-600">{plan.limits.contacts}</div>
-                  <div className="text-xs text-gray-600">{plan.limits.templates}</div>
-                  <div className="text-xs text-gray-600">{plan.limits.support}</div>
+                      <div className="text-xs text-gray-600">{limits.sms}</div>
+                      <div className="text-xs text-gray-600">{limits.contacts}</div>
+                      <div className="text-xs text-gray-600">{limits.templates}</div>
+                      <div className="text-xs text-gray-600">{limits.support}</div>
                 </div>
+                  );
+                })()}
 
                 {/* CTA Button */}
                 <button
-                  className={`w-full bg-gradient-to-r ${plan.color} text-white py-3 rounded-lg hover:opacity-90 transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg`}
-                  onClick={() => alert('Proceed to payment for ' + plan.name)}
+                  className={`w-full bg-gradient-to-r ${getPlanColor(plan.name).gradient} text-white py-3 rounded-lg hover:opacity-90 transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed`}
+                  onClick={() => handleProceedToPayment(plan)}
+                  disabled={loading || !user}
                 >
-                  <span>Proceed to Payment</span>
-                  <ArrowRight className="w-4 h-4" />
+                  {processingPlan === plan.id ? (
+                    <>
+                      <Loader className="w-4 h-4 animate-spin" />
+                      <span>Processing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="w-4 h-4" />
+                      <span>{user ? 'Subscribe Now' : 'Sign In to Subscribe'}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
                 </button>
               </div>
             </div>

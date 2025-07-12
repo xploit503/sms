@@ -10,56 +10,112 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Activity,
-  Upload
+  Upload,
+  User,
+  Calendar,
+  TrendingUp,
+  Award,
+  Zap
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
-
-interface User {
-  name: string;
-  balance?: number;
-  remainingSms?: number;
-}
+import { AuthUser } from '../lib/auth';
 
 interface DashboardProps {
-  user?: User;
+  user?: AuthUser;
   setActiveSection?: (section: string) => void;
 }
 
-const UserPlanInfo: React.FC<{user: User; setActiveSection?: (section: string) => void}> = ({ user, setActiveSection }) => {
-  const [showDetails, setShowDetails] = useState(false);
-
-  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      setShowDetails(!showDetails);
-    }
-  };
-
+const UserAccountCard: React.FC<{user: AuthUser; setActiveSection?: (section: string) => void}> = ({ user, setActiveSection }) => {
   return (
-    <div className="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-      <div 
-        className="cursor-pointer p-4 bg-blue-50 rounded-lg shadow-inner text-center"
-        onClick={() => setShowDetails(!showDetails)}
-        role="button"
-        tabIndex={0}
-        onKeyDown={handleKeyDown}
-        aria-pressed={showDetails}
-      >
-        <h3 className="text-lg font-semibold text-blue-700">Current Account</h3>
-        <p className="text-2xl font-bold text-gray-900">{user.name}</p>
-      </div>
-      {showDetails && (
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div className="flex flex-col justify-center items-center p-4 bg-green-50 rounded-lg shadow-inner">
-            <h3 className="text-lg font-semibold text-green-700 mb-2">Balance</h3>
-            <p className="text-2xl font-bold text-gray-900">UGX {user.balance?.toLocaleString() || '0'}</p>
+    <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 rounded-2xl p-6 text-white shadow-xl">
+      <div className="flex items-start justify-between mb-6">
+        <div className="flex items-center space-x-4">
+          <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30">
+            <User className="w-8 h-8 text-white" />
           </div>
-          <div className="flex flex-col justify-center items-center p-4 bg-purple-50 rounded-lg shadow-inner">
-            <h3 className="text-lg font-semibold text-purple-700 mb-2">Remaining SMS</h3>
-            <p className="text-2xl font-bold text-gray-900">{user.remainingSms?.toLocaleString() || '0'}</p>
+          <div>
+            <h2 className="text-2xl font-bold text-white">
+              {user.profile.first_name} {user.profile.last_name}
+            </h2>
+            <p className="text-blue-100 text-sm">{user.email}</p>
+            {user.profile.company && (
+              <p className="text-blue-200 text-sm">{user.profile.company}</p>
+            )}
           </div>
         </div>
-      )}
+        <div className="flex items-center space-x-2">
+          <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1 border border-white/30">
+            <div className="flex items-center space-x-1">
+              <Award className="w-4 h-4 text-yellow-300" />
+              <span className="text-sm font-medium">{user.subscription?.plan_name || 'BASIC'}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center space-x-2">
+              <CreditCard className="w-5 h-5 text-green-300" />
+              <span className="text-sm text-blue-100">Balance</span>
+            </div>
+            <TrendingUp className="w-4 h-4 text-green-300" />
+          </div>
+          <p className="text-2xl font-bold text-white">
+            UGX {user.profile.balance.toLocaleString()}
+          </p>
+          <p className="text-xs text-blue-200 mt-1">Available funds</p>
+        </div>
+        
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center space-x-2">
+              <MessageSquare className="w-5 h-5 text-purple-300" />
+              <span className="text-sm text-blue-100">SMS Credits</span>
+            </div>
+            <Zap className="w-4 h-4 text-purple-300" />
+          </div>
+          <p className="text-2xl font-bold text-white">
+            {user.profile.remaining_sms.toLocaleString()}
+          </p>
+          <p className="text-xs text-blue-200 mt-1">Messages remaining</p>
+        </div>
+        
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center space-x-2">
+              <Calendar className="w-5 h-5 text-orange-300" />
+              <span className="text-sm text-blue-100">Plan Status</span>
+            </div>
+            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+          </div>
+          <p className="text-lg font-bold text-white capitalize">
+            {user.subscription?.status || 'Active'}
+          </p>
+          <p className="text-xs text-blue-200 mt-1">
+            {user.subscription?.expires_at ? 
+              `Expires ${new Date(user.subscription.expires_at).toLocaleDateString()}` : 
+              'No expiration'
+            }
+          </p>
+        </div>
+      </div>
+      
+      <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/20">
+        <button 
+          onClick={() => setActiveSection && setActiveSection('balance')}
+          className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-all duration-200 border border-white/30"
+        >
+          Manage Balance
+        </button>
+        <button 
+          onClick={() => setActiveSection && setActiveSection('pricing')}
+          className="bg-white text-blue-700 hover:bg-blue-50 px-4 py-2 rounded-lg transition-all duration-200 font-medium"
+        >
+          Upgrade Plan
+        </button>
+      </div>
     </div>
   );
 };
@@ -95,7 +151,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setActiveSection }) => {
     },
     {
       title: 'Account Balance',
-      value: user ? `UGX ${user.balance?.toLocaleString() || '0'}` : 'UGX 1.83M',
+      value: user ? `UGX ${user.profile.balance.toLocaleString()}` : 'UGX 1.83M',
       change: '-5%',
       changeType: 'decrease' as const,
       icon: CreditCard,
@@ -198,7 +254,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setActiveSection }) => {
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
         <div className="text-center lg:text-left">
           <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
-            Welcome back{user ? `, ${user.name}` : ''}!
+            Welcome back{user ? `, ${user.profile.first_name}` : ''}!
           </h1>
           <p className="text-gray-600 mt-1">Here's what's happening with your SMS campaigns.</p>
         </div>
@@ -221,7 +277,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setActiveSection }) => {
       </div>
 
       {/* User Plan Info */}
-      {user && <UserPlanInfo user={user} setActiveSection={setActiveSection} />}
+      {user && <UserAccountCard user={user} setActiveSection={setActiveSection} />}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">

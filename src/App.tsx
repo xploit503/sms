@@ -7,19 +7,19 @@ import MessageHistory from './components/MessageHistory';
 import APISection from './components/APISection';
 import BalanceManager from './components/BalanceManager';
 import DeliveryReports from './components/DeliveryReports';
-import Login from './components/auth/Login';
-import Register from './components/auth/Register';
+import AuthContainer from './components/auth/AuthContainer';
 import Pricing from './components/Pricing';
 import Templates from './components/Templates';
 import Contacts from './components/Contacts';
 import SendSMS from './components/SendSMS';
 import ForgotPassword from './components/auth/ForgotPassword';
+import { AuthUser } from './lib/auth';
 
 function App() {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
 
   useEffect(() => {
     // Check if user is logged in
@@ -30,7 +30,7 @@ function App() {
     }
   }, []);
 
-  const handleLogin = (userData) => {
+  const handleLogin = (userData: AuthUser) => {
     setUser(userData);
     setIsAuthenticated(true);
     localStorage.setItem('user', JSON.stringify(userData));
@@ -74,11 +74,10 @@ function App() {
     return (
       <Router>
         <Routes>
-          <Route path="/login" element={<Login onLogin={handleLogin} />} />
-          <Route path="/register" element={<Register onLogin={handleLogin} />} />
+          <Route path="/auth" element={<AuthContainer onLogin={handleLogin} />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/pricing" element={<Pricing />} />
-          <Route path="*" element={<Navigate to="/login" />} />
+          <Route path="*" element={<Navigate to="/auth" />} />
         </Routes>
       </Router>
     );
