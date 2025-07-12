@@ -48,6 +48,23 @@ export const authService = {
       }
 
       if (data.user) {
+        // Create user profile manually
+        const { error: profileError } = await supabase
+          .from('user_profiles')
+          .insert({
+            user_id: data.user.id,
+            first_name: userData.firstName,
+            last_name: userData.lastName,
+            company: userData.company || null,
+            balance: 1000, // Initial balance of UGX 1000
+            remaining_sms: 6, // 1000 / 150 = 6 SMS
+          });
+
+        if (profileError) {
+          console.error('Profile creation error:', profileError);
+          // Don't fail the signup if profile creation fails
+        }
+
         const authUser = await this.getUserProfile(data.user.id);
         return { user: authUser, error: null };
       }
@@ -131,13 +148,36 @@ export const authService = {
         .from('user_profiles')
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
       if (profileError) {
         console.error('Profile error:', profileError);
         return null;
       }
 
+      // If no profile exists, create one
+      if (!profile) {
+        const { data: newProfile, error: createError } = await supabase
+          .from('user_profiles')
+          .insert({
+            user_id: userId,
+            first_name: userData.user.user_metadata?.first_name || '',
+            last_name: userData.user.user_metadata?.last_name || '',
+            company: userData.user.user_metadata?.company || null,
+            balance: 1000,
+            remaining_sms: 6,
+          })
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Error creating profile:', createError);
+          return null;
+        }
+
+        // Use the newly created profile
+        const profile = newProfile;
+      }
       // Get user subscription
       const { data: subscription } = await supabase
         .from('user_subscriptions')
@@ -147,7 +187,7 @@ export const authService = {
         `)
         .eq('user_id', userId)
         .eq('status', 'active')
-        .single();
+        .maybeSingle();
 
       const authUser: AuthUser = {
         id: userData.user.id,
