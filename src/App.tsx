@@ -8,38 +8,60 @@ import APISection from './components/APISection';
 import BalanceManager from './components/BalanceManager';
 import DeliveryReports from './components/DeliveryReports';
 import AuthContainer from './components/auth/AuthContainer';
+import AuthCallback from './components/auth/AuthCallback';
 import Pricing from './components/Pricing';
 import Templates from './components/Templates';
 import Contacts from './components/Contacts';
 import SendSMS from './components/SendSMS';
 import ForgotPassword from './components/auth/ForgotPassword';
-import { AuthUser } from './lib/auth';
+import { AuthUser, authService } from './lib/auth';
 
 function App() {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is logged in
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-      setIsAuthenticated(true);
-    }
+    // Check for existing session
+    const checkAuth = async () => {
+      try {
+        const currentUser = await authService.getCurrentUser();
+        if (currentUser) {
+          setUser(currentUser);
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = authService.onAuthStateChange((user) => {
+      setUser(user);
+      setIsAuthenticated(!!user);
+      setIsLoading(false);
+    });
+
+    return () => {
+      subscription?.unsubscribe();
+    };
   }, []);
 
   const handleLogin = (userData: AuthUser) => {
     setUser(userData);
     setIsAuthenticated(true);
-    localStorage.setItem('user', JSON.stringify(userData));
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await authService.signOut();
     setUser(null);
     setIsAuthenticated(false);
-    localStorage.removeItem('user');
     setActiveSection('dashboard');
   };
 
@@ -70,11 +92,26 @@ function App() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+            <div className="w-8 h-8 bg-blue-600 rounded-full"></div>
+          </div>
+          <h2 className="text-xl font-semibold text-blue-900 mb-2">Loading...</h2>
+          <p className="text-blue-600">Please wait while we load your dashboard.</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!isAuthenticated) {
     return (
       <Router>
         <Routes>
           <Route path="/auth" element={<AuthContainer onLogin={handleLogin} />} />
+          <Route path="/auth/callback" element={<AuthCallback onLogin={handleLogin} />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="*" element={<Navigate to="/auth" />} />

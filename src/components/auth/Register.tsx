@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, Lock, User, Eye, EyeOff, Building, Loader } from 'lucide-react';
 import { authService, AuthUser } from '../../lib/auth';
+import GoogleSignInButton from './GoogleSignInButton';
 
 interface RegisterProps {
   onLogin: (userData: AuthUser) => void;
@@ -49,6 +50,16 @@ const Register: React.FC<RegisterProps> = ({ onLogin, onSwitchToLogin }) => {
     setIsLoading(false);
   };
 
+  const handleGoogleSignIn = async () => {
+    setError('');
+    const { error } = await authService.signInWithGoogle();
+    
+    if (error) {
+      setError(error);
+    }
+    // Note: Google sign-in will redirect, so we don't handle success here
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
@@ -65,10 +76,23 @@ const Register: React.FC<RegisterProps> = ({ onLogin, onSwitchToLogin }) => {
       
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg text-sm">
+          <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm">
             {error}
           </div>
         )}
+        
+        {/* Google Sign In Button */}
+        <GoogleSignInButton onClick={handleGoogleSignIn} />
+        
+        {/* Divider */}
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-blue-200" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-white text-blue-600">Or create account with email</span>
+          </div>
+        </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>

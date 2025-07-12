@@ -1,9 +1,10 @@
 import { supabase } from './supabase';
-import bcrypt from 'bcryptjs';
 
 export interface AuthUser {
   id: string;
   email: string;
+  provider?: string;
+  avatar_url?: string;
   profile: {
     first_name: string;
     last_name: string;
@@ -20,6 +21,7 @@ export interface AuthUser {
 }
 
 export const authService = {
+  // Sign up with email and password
   async signUp(userData: {
     email: string;
     password: string;
@@ -28,122 +30,112 @@ export const authService = {
     company?: string;
   }): Promise<{ user: AuthUser | null; error: string | null }> {
     try {
-      // Hash password
-      const passwordHash = await bcrypt.hash(userData.password, 12);
+      const { data, error } = await supabase.auth.signUp({
+        email: userData.email,
+        password: userData.password,
+        options: {
+          data: {
+            first_name: userData.firstName,
+            last_name: userData.lastName,
+            full_name: `${userData.firstName} ${userData.lastName}`,
+            company: userData.company,
+          }
+        }
+      });
 
-      // Create user
-      const { data: user, error: userError } = await supabase
-        .from('users')
-        .insert({
-          email: userData.email,
-          password_hash: passwordHash,
-        })
-        .select()
-        .single();
-
-      if (userError) {
-        return { user: null, error: userError.message };
+      if (error) {
+        return { user: null, error: error.message };
       }
 
-      // Create user profile
-      const { data: profile, error: profileError } = await supabase
-        .from('user_profiles')
-        .insert({
-          user_id: user.id,
-          first_name: userData.firstName,
-          last_name: userData.lastName,
-          company: userData.company,
-          balance: 10000, // Starting balance of UGX 100 for testing
-          remaining_sms: 67, // Approximately 67 SMS with starting balance
-        })
-        .select()
-        .single();
-
-      if (profileError) {
-        return { user: null, error: profileError.message };
+      if (data.user) {
+        const authUser = await this.getUserProfile(data.user.id);
+        return { user: authUser, error: null };
       }
 
-      // Get default plan (BASIC)
-      const { data: defaultPlan } = await supabase
-        .from('pricing_plans')
-        .select('id')
-        .eq('name', 'BASIC')
-        .single();
-
-      if (defaultPlan) {
-        // Create subscription
-        await supabase
-          .from('user_subscriptions')
-          .insert({
-            user_id: user.id,
-            plan_id: defaultPlan.id,
-            status: 'active',
-          });
-      }
-
-      // Create initial transaction
-      await supabase
-        .from('transactions')
-        .insert({
-          user_id: user.id,
-          type: 'credit',
-          amount: 10000,
-          balance_after: 10000,
-          description: 'Welcome bonus - Free testing credit',
-          status: 'completed',
-        });
-
-      const authUser: AuthUser = {
-        id: user.id,
-        email: user.email,
-        profile: {
-          first_name: profile.first_name,
-          last_name: profile.last_name,
-          company: profile.company,
-          phone: profile.phone,
-          balance: profile.balance,
-          remaining_sms: profile.remaining_sms,
-        },
-        subscription: {
-          plan_name: 'BASIC',
-          status: 'active',
-        },
-      };
-
-      return { user: authUser, error: null };
+      return { user: null, error: 'Failed to create user' };
     } catch (error) {
       return { user: null, error: (error as Error).message };
     }
   },
 
+  // Sign in with email and password
   async signIn(email: string, password: string): Promise<{ user: AuthUser | null; error: string | null }> {
     try {
-      // Get user by email
-      const { data: user, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', email)
-        .single();
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-      if (userError || !user) {
-        return { user: null, error: 'Invalid email or password' };
+      if (error) {
+        return { user: null, error: error.message };
       }
 
-      // Verify password
-      const isValidPassword = await bcrypt.compare(password, user.password_hash);
-      if (!isValidPassword) {
-        return { user: null, error: 'Invalid email or password' };
+      if (data.user) {
+        const authUser = await this.getUserProfile(data.user.id);
+        return { user: authUser, error: null };
       }
+
+      return { user: null, error: 'Failed to sign in' };
+    } catch (error) {
+      return { user: null, error: (error as Error).message };
+    }
+  },
+
+  // Sign in with Google
+  async signInWithGoogle(): Promise<{ error: string | null }> {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
+        }
+      });
+
+      if (error) {
+        return { error: error.message };
+      }
+
+      return { error: null };
+    } catch (error) {
+      return { error: (error as Error).message };
+    }
+  },
+
+  // Get current user
+  async getCurrentUser(): Promise<AuthUser | null> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) return null;
+
+      return await this.getUserProfile(user.id);
+    } catch (error) {
+      console.error('Error getting current user:', error);
+      return null;
+    }
+  },
+
+  // Get user profile with all related data
+  async getUserProfile(userId: string): Promise<AuthUser | null> {
+    try {
+      // Get user data
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return null;
 
       // Get user profile
       const { data: profile, error: profileError } = await supabase
         .from('user_profiles')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .single();
 
       if (profileError) {
-        return { user: null, error: 'Failed to load user profile' };
+        console.error('Profile error:', profileError);
+        return null;
       }
 
       // Get user subscription
@@ -153,13 +145,15 @@ export const authService = {
           *,
           pricing_plans (name, price)
         `)
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('status', 'active')
         .single();
 
       const authUser: AuthUser = {
-        id: user.id,
-        email: user.email,
+        id: userData.user.id,
+        email: userData.user.email || '',
+        provider: userData.user.app_metadata?.provider || 'email',
+        avatar_url: userData.user.user_metadata?.avatar_url,
         profile: {
           first_name: profile.first_name,
           last_name: profile.last_name,
@@ -175,12 +169,24 @@ export const authService = {
         } : undefined,
       };
 
-      return { user: authUser, error: null };
+      return authUser;
     } catch (error) {
-      return { user: null, error: (error as Error).message };
+      console.error('Error getting user profile:', error);
+      return null;
     }
   },
 
+  // Sign out
+  async signOut(): Promise<{ error: string | null }> {
+    try {
+      const { error } = await supabase.auth.signOut();
+      return { error: error?.message || null };
+    } catch (error) {
+      return { error: (error as Error).message };
+    }
+  },
+
+  // Update user profile
   async updateProfile(userId: string, updates: Partial<{
     first_name: string;
     last_name: string;
@@ -206,6 +212,7 @@ export const authService = {
     }
   },
 
+  // Update balance
   async updateBalance(userId: string, amount: number, description: string): Promise<{ success: boolean; error: string | null }> {
     try {
       // Get current balance
@@ -253,4 +260,42 @@ export const authService = {
       return { success: false, error: (error as Error).message };
     }
   },
+
+  // Listen to auth state changes
+  onAuthStateChange(callback: (user: AuthUser | null) => void) {
+    return supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        const authUser = await this.getUserProfile(session.user.id);
+        callback(authUser);
+      } else {
+        callback(null);
+      }
+    });
+  },
+
+  // Reset password
+  async resetPassword(email: string): Promise<{ error: string | null }> {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      });
+
+      return { error: error?.message || null };
+    } catch (error) {
+      return { error: (error as Error).message };
+    }
+  },
+
+  // Update password
+  async updatePassword(password: string): Promise<{ error: string | null }> {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: password
+      });
+
+      return { error: error?.message || null };
+    } catch (error) {
+      return { error: (error as Error).message };
+    }
+  }
 };

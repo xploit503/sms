@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, ArrowLeft, CheckCircle, Loader } from 'lucide-react';
+import { authService } from '../../lib/auth';
 
 interface ForgotPasswordProps {
   onSwitchToLogin: () => void;
@@ -22,15 +23,15 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onSwitchToLogin }) => {
 
     setIsLoading(true);
     
-    // Simulate API call for password reset
-    try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+    const { error } = await authService.resetPassword(email);
+    
+    if (error) {
+      setError(error);
+    } else {
       setIsSubmitted(true);
-    } catch (error) {
-      setError('Failed to send reset email. Please try again.');
-    } finally {
-      setIsLoading(false);
     }
+    
+    setIsLoading(false);
   };
 
   if (isSubmitted) {
@@ -76,7 +77,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onSwitchToLogin }) => {
       
       <form onSubmit={handleSubmit} className="space-y-5">
         {error && (
-          <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg text-sm">
+          <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm">
             {error}
           </div>
         )}

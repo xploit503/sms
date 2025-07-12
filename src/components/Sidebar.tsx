@@ -17,13 +17,14 @@ import {
   DollarSign,
   LogOut
 } from 'lucide-react';
+import { AuthUser } from '../lib/auth';
 
 interface SidebarProps {
   activeSection: string;
   setActiveSection: (section: string) => void;
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
-  user?: any;
+  user?: AuthUser | null;
   onLogout?: () => void;
 }
 
@@ -118,12 +119,24 @@ const Sidebar: React.FC<SidebarProps> = ({
           {user && (
             <div className="mb-4">
               <div className="flex items-center space-x-3 p-3 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100">
-                <div className="w-10 h-10 bg-gradient-to-br from-gray-400 to-gray-500 rounded-full flex items-center justify-center">
-                  <User className="w-5 h-5 text-white" />
-                </div>
+                {user.avatar_url ? (
+                  <img 
+                    src={user.avatar_url} 
+                    alt="Profile" 
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-10 h-10 bg-gradient-to-br from-gray-400 to-gray-500 rounded-full flex items-center justify-center">
+                    <User className="w-5 h-5 text-white" />
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
-                  <p className="text-xs text-gray-500">{user.plan} Plan</p>
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {user.profile.first_name} {user.profile.last_name}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {user.subscription?.plan_name || 'BASIC'} Plan
+                  </p>
                 </div>
                 <TrendingUp className="w-4 h-4 text-green-500" />
               </div>
